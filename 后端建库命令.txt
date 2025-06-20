@@ -1,0 +1,39 @@
+-- 创建数据库
+CREATE DATABASE IF NOT EXISTS sea CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 使用数据库
+USE sea;
+
+-- 创建用户表
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100),
+    role ENUM('admin', 'user') DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 创建海冰数据表
+CREATE TABLE IF NOT EXISTS ice_data (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    region ENUM('A', 'B', 'C') NOT NULL,
+    density DECIMAL(10, 2) NOT NULL,
+    temperature DECIMAL(10, 2) NOT NULL,
+    thickness DECIMAL(10, 2) NOT NULL,
+    collector VARCHAR(100) NOT NULL,
+    timestamp DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 创建索引
+CREATE INDEX idx_ice_data_region ON ice_data(region);
+CREATE INDEX idx_ice_data_timestamp ON ice_data(timestamp);
+CREATE INDEX idx_ice_data_collector ON ice_data(collector);
+
+-- 创建数据库用户并授权（如果需要）
+-- CREATE USER IF NOT EXISTS 'root'@'localhost' IDENTIFIED BY 'root';
+-- GRANT ALL PRIVILEGES ON sea.* TO 'root'@'localhost';
+-- FLUSH PRIVILEGES;

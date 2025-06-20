@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { testConnection } = require('./config/db');
+const { testRedisConnection } = require('./config/redis');
 const authRoutes = require('./routes/authRoutes');
 const arcticIceRoutes = require('./routes/arcticIceRoutes');
 const iceDataRoutes = require('./routes/iceDataRoutes');  // 新增数据管理路由
@@ -29,9 +30,27 @@ app.use('/api/arctic-ice', arcticIceRoutes);
 app.use('/api/ice-data', iceDataRoutes);  // 新增数据管理路由
 
 // 数据库连接检测
-testConnection().catch(error => {
-  console.error('数据库连接失败:', error);
-  process.exit(1);  // 如果数据库连接失败，终止应用
+Promise.all([
+  testConnection().catch(error => {
+    console.error('MySQL数据库连接失败:', error);
+    return false;
+  }),
+  testRedisConnection().catch(error => {
+    console.error('Redis连接失败:', error);
+    return false;
+  })
+]).then(([mysqlConnected, redisConnected]) => {
+  if (!mysqlConnected) {
+    console.error('MySQL数据库连接失败，服务可能无法正常工作');
+  }
+  
+  if (!redisConnected) {
+    console.warn('Redis连接失败，将不使用缓存功能');
+  }
+  
+  if (!mysqlConnected) {
+    process.exit(1);  // 如果MySQL连接失败，终止应用
+  }
 });
 
 // 全局错误处理中间件
